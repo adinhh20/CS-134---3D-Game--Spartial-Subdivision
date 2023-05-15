@@ -6,8 +6,8 @@
 //  Octree Test - startup scene
 // 
 //
-//  Student Name:   < Your Name goes Here >
-//  Date: <date of last version>
+//  Student Name:   < Anh Dinh >
+//  Date: <>
 
 
 #include "ofApp.h"
@@ -37,8 +37,12 @@ void ofApp::setup(){
 	//
 	initLightingAndMaterials();
 
-	mars.loadModel("geo/mars-low-5x-v2.obj");
+	mars.loadModel("geo/mars-low-v2.obj");
 	mars.setScaleNormalization(false);
+
+	model.loadModel("geo/donut.obj");
+	model.setScaleNormalization(false);
+	model.setPosition(0, 0, 0);
 
 	// create sliders for testing
 	//
@@ -52,6 +56,11 @@ void ofApp::setup(){
 	octree.create(mars.getMesh(0), 20);
 	
 	cout << "Number of Verts: " << mars.getMesh(0).getNumVertices() << endl;
+
+	/*int startTime = ofGetElapsedTimeMillis();
+	octree.create(mars.getMesh(0), 20);
+	int endTime = ofGetElapsedTimeMillis();
+	cout << "Time to build octree: " << endTime - startTime << " ms" << endl;*/
 
 	testBox = Box(Vector3(3, 3, 0), Vector3(5, 5, 2));
 
@@ -163,6 +172,14 @@ void ofApp::draw() {
 		ofSetColor(ofColor::lightGreen);
 		ofDrawSphere(p, .02 * d.length());
 	}
+
+	/*if (bDrawOctree) {
+        int startTime = ofGetElapsedTimeMillis();
+        octree.intersect(ray, octree.root, selectedNode);
+        int endTime = ofGetElapsedTimeMillis();
+        cout << "Time to search octree: " << endTime - startTime << " ms" << endl;
+        //...
+    }*/
 
 	ofPopMatrix();
 	cam.end();
@@ -350,6 +367,9 @@ bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
 	if (pointSelected) {
 		pointRet = octree.mesh.getVertex(selectedNode.points[0]);
 	}
+	cout << "elapsed time =  " << ofGetElapsedTimeMillis() << " ms " << endl;
+
+
 	return pointSelected;
 }
 
