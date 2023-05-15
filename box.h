@@ -47,8 +47,15 @@ class Box {
 
 	// implement for Homework Project
 	//
-	 bool overlap(const Box &box) {
-		 return false;
+	bool overlap(const Box &box) {
+		 //return false;
+		 // Check for overlap in all three dimensions
+		 bool xOverlap = (parameters[1].x() >= box.parameters[0].x()) && (parameters[0].x() <= box.parameters[1].x());
+		 bool yOverlap = (parameters[1].y() >= box.parameters[0].y()) && (parameters[0].y() <= box.parameters[1].y());
+		 bool zOverlap = (parameters[1].z() >= box.parameters[0].z()) && (parameters[0].z() <= box.parameters[1].z());
+
+		 // If there is overlap in all three dimensions, the boxes intersect
+		 return (xOverlap && yOverlap && zOverlap);
 	}
 
 	Vector3 center() {
