@@ -1,15 +1,3 @@
-
-//--------------------------------------------------------------
-//
-//  Kevin M. Smith
-//
-//  Simple Octree Implementation 11/10/2020
-// 
-//  Copyright (c) by Kevin M. Smith
-//  Copying or use without permission is prohibited by law. 
-//
-
-
 #include "Octree.h"
  
 
@@ -137,7 +125,7 @@ void Octree::create(const ofMesh & geo, int numLevels) {
 			root.points.push_back(i);
 		}
 	}
-	else {
+	else { //TODO
 		// need to load face vertices here
 		//
 	}
@@ -146,6 +134,8 @@ void Octree::create(const ofMesh & geo, int numLevels) {
 	//
 	level++;
     subdivide(mesh, root, numLevels, level);
+
+	cout << "elapsed time =  " << ofGetElapsedTimeMillis() << " ms " << endl;
 }
 
 
@@ -167,23 +157,75 @@ void Octree::subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int 
 	if (level >= numLevels) return;
 
 	// subdvide algorithm implemented here
+	level++;
+	vector<Box> boxList;
+	subDivideBox8(node.box, boxList);
+
+	for (int i = 0; i < boxList.size(); i++) {
+		TreeNode child;
+		int count = getMeshPointsInBox(mesh, node.points, boxList[i], child.points);
+		if (count > 0) {
+			child.box = boxList[i];
+			node.children.push_back(child);
+			if (count > 1) {
+				subdivide(mesh, node.children.back(), numLevels, level);
+			}
+		}
+	}
 }
 
 // Implement functions below for Homework project
 //
-
-bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
+bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) { //ray-box intersection
 	bool intersects = false;
+	if (node.box.intersect(ray, -99999, 99999)) {
+		if (node.children.size() == 0) {
+			intersects = true;
+			nodeRtn = node;
+		}
+		else {
+			/*for (auto& child : node.children) {
+				if (intersect(ray, child, nodeRtn)) {
+					intersects = true;
+				}
+			}*/
+			for (int i = 0; i < node.children.size(); i++) {
+				intersect(ray, node.children[i], nodeRtn);
+				intersects = true;
+			}
+		}
+	}
+
 	return intersects;
 }
 
-bool Octree::intersect(const Box &box, TreeNode & node, vector<Box> & boxListRtn) {
+bool Octree::intersect(const Box &box, TreeNode & node, vector<Box> & boxListRtn) { //box-box intersection
 	bool intersects = false;
+
+	// Check for intersection between input box and current node's AABB
+	if (node.box.overlap(box)) {
+		if (!node.children.empty()) {
+			for (int i = 0; i < node.children.size(); i++) {
+				intersects |= intersect(box, node.children[i], boxListRtn);
+			}
+		}
+		else {
+			boxListRtn.push_back(node.box);
+			intersects = true;
+		}
+	}
+
 	return intersects;
 }
 
-void Octree::draw(TreeNode & node, int numLevels, int level) {
-
+void Octree::draw(TreeNode& node, int numLevels, int level) {
+	if (level >= numLevels) return;
+	ofSetColor(colors[level]);
+	drawBox(node.box);
+	level++;
+	for (int i = 0; i < node.children.size(); i++) {
+		draw(node.children[i], numLevels, level);
+	}
 }
 
 // Optional
@@ -192,7 +234,3 @@ void Octree::drawLeafNodes(TreeNode & node) {
 
 
 }
-
-
-
-
